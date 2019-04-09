@@ -11,10 +11,10 @@ import Firebase
 import SVProgressHUD
 import ChameleonFramework
 
-class ChatViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
+class ChatViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     // Declare instance variables here
-    var messageArray = [Message]()
+    var messageArray: [Message] = []
     
     // We've pre-linked the IBOutlets
     @IBOutlet var heightConstraint: NSLayoutConstraint!
@@ -33,7 +33,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         
         
         //TODO: Set yourself as the delegate of the text field here:
-        messageTextfield.delegate = self
+//        messageTextfield.delegate = self
         
         
         //TODO: Set the tapGesture here:
@@ -88,7 +88,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     //TODO: Declare configureTableView here:
     func configureTableView() {
         messageTableView.rowHeight = UITableView.automaticDimension
-        messageTableView.estimatedRowHeight = 120.0
+        messageTableView.estimatedRowHeight = 120.0 // / If estimated row height is NOT correct then will automatically use the height constraint specified in the cell's design file (i.e. MessageCell.xib)
     }
     
     
@@ -99,29 +99,76 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
 
     
-    //TODO: Declare textFieldDidBeginEditing here:
-    // Called AUTOMATICALLY when you start interacting with the UITextField
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        
-        UIView.animate(withDuration: 0.5) {
-            self.heightConstraint.constant = 50 + 258 // Height of keyboard is always constant 258
-            self.view.layoutIfNeeded() // Update the change in constraint (REQUIRED)
-        }
-        
-        
-    }
-    
-    
-    
-    //TODO: Declare textFieldDidEndEditing here:
-    // Need to be called MANUALLY
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        UIView.animate(withDuration: 0.5) {
-            self.heightConstraint.constant = 50
-            self.view.layoutIfNeeded()
-        }
-    }
+//    //TODO: Declare textFieldDidBeginEditing here:
+//    // Called AUTOMATICALLY when you start interacting with the UITextField
+//    func textFieldDidBeginEditing(_ textField: UITextField) {
+//
+//        UIView.animate(withDuration: 0.5) {
+//            self.heightConstraint.constant = 50 + 258 // Height of keyboard is always constant 258
+//            self.view.layoutIfNeeded() // Update the change in constraint (REQUIRED)
+//        }
+//
+//
+//    }
+//
+//
+//
+//    //TODO: Declare textFieldDidEndEditing here:
+//    // Need to be called MANUALLY
+//    func textFieldDidEndEditing(_ textField: UITextField) {
+//        UIView.animate(withDuration: 0.5) {
+//            self.heightConstraint.constant = 50
+//            self.view.layoutIfNeeded()
+//        }
+//    }
 
+    
+    ///////////////////////////////////////////
+    
+    ///////////////////////////////////////////
+    
+    //MARK:- Change "Compose View" size with keyboard size dynamically
+    // https://stackoverflow.com/a/46366394/4995771
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChange(notification:)),
+                                               name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide),
+                                               name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    @objc func keyboardWillHide() {
+        UIView.animate(withDuration: 0.5) {
+            let composeViewHeight: CGFloat = 50 // Height of the parent view for send button and message text field
+            self.heightConstraint.constant = composeViewHeight
+            self.view.layoutIfNeeded() // Update the change in height constraint (REQUIRED)
+        }
+    }
+    
+    @objc func keyboardWillChange(notification: NSNotification) {
+        
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            if messageTextfield.isFirstResponder {
+                UIView.animate(withDuration: 0.5) {
+                    let composeViewHeight: CGFloat = 50 // Height of the parent view for send button and message text field
+                    self.heightConstraint.constant = keyboardSize.height + composeViewHeight
+                    self.view.layoutIfNeeded() // Update the change in height constraint (REQUIRED)
+                }
+            }
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        NotificationCenter.default.removeObserver(self,
+                                                  name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        NotificationCenter.default.removeObserver(self,
+                                                  name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
     
     ///////////////////////////////////////////
     
