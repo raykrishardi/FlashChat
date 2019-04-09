@@ -12,7 +12,7 @@ import Firebase
 class ChatViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
     // Declare instance variables here
-
+    var messageArray = [Message]()
     
     // We've pre-linked the IBOutlets
     @IBOutlet var heightConstraint: NSLayoutConstraint!
@@ -41,7 +41,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         //TODO: Register your MessageCell.xib file here:
         messageTableView.register(UINib(nibName: "MessageCell", bundle: nil), forCellReuseIdentifier: "customMessageCell")
         configureTableView()
-        
+        retrieveMessages()
     }
 
     ///////////////////////////////////////////
@@ -54,9 +54,9 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "customMessageCell", for: indexPath) as! CustomMessageCell
         
-        var messages = ["first message", "second message", "third message"]
-        
-        cell.messageBody.text = messages[indexPath.row]
+        cell.senderUsername.text = messageArray[indexPath.row].sender
+        cell.messageBody.text = messageArray[indexPath.row].messageBody
+        cell.avatarImageView.image = UIImage(named: "egg")
         
         return cell
     }
@@ -64,7 +64,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     //TODO: Declare numberOfRowsInSection here:
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 3
+        return messageArray.count
     }
     
     
@@ -125,6 +125,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         
         
         //TODO: Send the message to Firebase and save it in our database
+        
+        // Disable the text field and send button in order to prevent duplicate data when the user repeatedly click send when the async task (i.e. saving data to the firebase is still taking its time)
         messageTextfield.isEnabled = false
         sendButton.isEnabled = false
         
@@ -152,7 +154,23 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     //TODO: Create the retrieveMessages method here:
-    
+    func retrieveMessages() {
+        
+        let messagesDB = Database.database().reference().child("Messages")
+        
+        // Observer (.childAdded) that works asynchronously when a new entry is added to the database (it is more efficient because it is not grabbing the ENTIRE data every time a new entry is added. However, it only gets triggered when a new entry in the database is added)
+        
+        // snapshot is the new data retrieved from the database
+        messagesDB.observe(.childAdded) { (snapshot) in
+            let snapshotValue = snapshot.value as! Dictionary<String,String>
+            
+            self.messageArray.append(Message(sender: snapshotValue["sender"]!, messageBody: snapshotValue["messageBody"]!))
+            
+            self.configureTableView()
+            self.messageTableView.reloadData()
+        }
+        
+    }
     
 
     
