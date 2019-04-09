@@ -9,6 +9,7 @@
 import UIKit
 import Firebase
 import SVProgressHUD
+import ChameleonFramework
 
 class ChatViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
@@ -58,6 +59,15 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         cell.senderUsername.text = messageArray[indexPath.row].sender
         cell.messageBody.text = messageArray[indexPath.row].messageBody
         cell.avatarImageView.image = UIImage(named: "egg")
+        
+        if messageArray[indexPath.row].sender == Auth.auth().currentUser?.email {
+            // Currently logged in user
+            cell.avatarImageView.backgroundColor = UIColor.flatMint()
+            cell.messageBackground.backgroundColor = UIColor.flatSkyBlue()
+        } else {
+            cell.avatarImageView.backgroundColor = UIColor.flatWatermelon()
+            cell.messageBackground.backgroundColor = UIColor.flatGray()
+        }
         
         return cell
     }
