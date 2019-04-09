@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import SVProgressHUD
 
 class ChatViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
@@ -168,6 +169,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
             
             self.configureTableView()
             self.messageTableView.reloadData()
+            SVProgressHUD.dismiss()
         }
         
     }
